@@ -14,14 +14,10 @@ current = []
 with open("V-I.csv") as csvfile:
     rows = csv.reader(csvfile, delimiter='\t')
     for row in rows:
-        print rows.line_num
-        print row
-        type(row)
-
         if rows.line_num == 1: 
-            continue # don't include first row
-        if rows.line_num == 10:
-            break
+            print row
+            continue # don't include the headers in the first row
+        # We don't need to convert them to reals, since pyplot does this already
         voltage.append(row[0])
         current.append(row[1])
 
