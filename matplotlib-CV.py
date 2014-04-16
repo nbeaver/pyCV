@@ -23,8 +23,22 @@ def get_extrema(list):
             pass
     return extrema, minima, maxima
 
+def saveplot(filename):
+    # Make room for larger text
+    from matplotlib import rcParams
+    rcParams.update({'figure.autolayout': True})
+
+    matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
+    matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
+    matplotlib.pyplot.title('Mesoporous carbon', fontsize=24)
+    matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
+    matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
+
 voltage_list = []
 current_list = []
+
+#TODO: make the opened file configurable from commandline
+#TODO: parse an EZStat file instead of the simpler CSV file
 with open("V-I.csv") as csvfile:
     rows = csv.reader(csvfile, delimiter='\t')
     for row in rows:
@@ -49,15 +63,5 @@ _, _, voltage_maximas  = get_extrema(voltage_list)
 
 matplotlib.pyplot.plot(voltage_list, current_list_mA)
 
-def saveplot(filename):
-    # Make room for larger text
-    from matplotlib import rcParams
-    rcParams.update({'figure.autolayout': True})
-
-    matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
-    matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
-    matplotlib.pyplot.title('Mesoporous carbon', fontsize=24)
-    matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
-    matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
-
+#TODO: save each cycle as a separate image
 saveplot('all-cycles')
