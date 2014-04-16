@@ -52,4 +52,6 @@ matplotlib.pyplot.plot(voltage_list, [A_to_mA*current for current in current_lis
 matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
 matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
 matplotlib.pyplot.title('Mesoporous carbon', fontsize=30)
+matplotlib.pyplot.savefig('all-cycles.png', bbox_inches='tight')
+matplotlib.pyplot.savefig('all-cycles.jpg', bbox_inches='tight')
 matplotlib.pyplot.show()
