@@ -8,6 +8,9 @@ def get_local_extrema(list):
     extrema = [0]
     maxima = [0]
     minima = [0]
+    # To avoid counting tiny jitters as a cycle,
+    # we need a minimum voltage range.
+    minimum_voltage_range = 0.1 # volts
     for i, val in enumerate(list):
         if i > 2:
             delta =          list[i - 0] - list[i - 1]
@@ -19,8 +22,10 @@ def get_local_extrema(list):
                 extrema.append(i)
                 if cmp(delta, delta_previous) == -1:
                     maxima.append(i)
+                    print "Maxima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
                 else:
                     minima.append(i)
+                    print "Minima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
         else:
             pass
     # Local extrema includes end of range
@@ -41,12 +46,19 @@ def saveplot(filename):
     matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
     matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
 
-voltage_list = []
-current_list = []
+# TODO: be a little more thorough about checking the arguments
+# TODO: choose which scans to overplot on same graph
+if len(sys.argv) < 2:
+    # There should be at least the name of the script and the name of the datafile.
+    print "Usage: python matplotlib-CV.py datafile.csv"
+    exit(1)
+
 file_name = sys.argv[1]
 
 #DONE: make the opened file configurable from commandline
 #DONE: parse EZStat potentiostat data instead of the simpler CSV file
+voltage_list = []
+current_list = []
 with open(file_name) as csvfile:
     row_reader = csv.reader(csvfile, delimiter=',')
     try:
