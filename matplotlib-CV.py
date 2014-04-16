@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import matplotlib.pyplot
 import csv
+import sys
 
 def get_extrema(list):
     extrema = []
@@ -36,25 +37,36 @@ def saveplot(filename):
 
 voltage_list = []
 current_list = []
+file_name = sys.argv[1]
 
-#TODO: make the opened file configurable from commandline
-#TODO: parse an EZStat file instead of the simpler CSV file
-with open("V-I.csv") as csvfile:
-    rows = csv.reader(csvfile, delimiter='\t')
-    for row in rows:
-        number_of_rows_to_skip = 1
-        if rows.line_num <= number_of_rows_to_skip: 
-            continue # skip headers
+#DONE: make the opened file configurable from commandline
+#DONE: parse EZStat potentiostat data instead of the simpler CSV file
+with open(file_name) as csvfile:
+    row_reader = csv.reader(csvfile, delimiter=',')
+    try:
+        for row in row_reader:
+            number_of_rows_to_skip = 4
+            voltage_column = 8 # start at 0
+            current_column = 6 # start at 0
+            if row_reader.line_num == number_of_rows_to_skip:
+                assert row[current_column] == 'Cell.Current (A)'
+                assert row[voltage_column] == 'Cell.Potential (V)'
+            if row_reader.line_num <= number_of_rows_to_skip: 
+                continue # skip headers
 
-        voltage = float(row[0])
-        current = float(row[1])
+            voltage = float(row[voltage_column])
+            current = float(row[current_column])
 
-        voltage_list.append(voltage)
-        current_list.append(current)
+            voltage_list.append(voltage)
+            current_list.append(current)
 
-        n = rows.line_num - number_of_rows_to_skip # nominal number of datapoints
-        assert n == len(voltage_list)
-        assert n == len(current_list)
+            n = row_reader.line_num - number_of_rows_to_skip # nominal number of datapoints
+            assert n == len(voltage_list)
+            assert n == len(current_list)
+    # Have to do this, since aborting a scan leaves a bunch of ASCII NUL characters.
+    except csv.Error, error:
+        print "Warning: ignored error:",error
+        pass
 
 A_to_mA = 1000 # 1000 milliamps per amp
 current_list_mA = [A_to_mA*current for current in current_list]
