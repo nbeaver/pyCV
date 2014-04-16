@@ -3,10 +3,11 @@ import matplotlib.pyplot
 import csv
 import sys
 
-def get_extrema(list):
-    extrema = []
-    maxima = []
-    minima = []
+def get_local_extrema(list):
+    # Local extrema includes beginning of range 
+    extrema = [0]
+    maxima = [0]
+    minima = [0]
     for i, val in enumerate(list):
         if i > 2:
             delta =          list[i - 0] - list[i - 1]
@@ -22,6 +23,11 @@ def get_extrema(list):
                     minima.append(i)
         else:
             pass
+    # Local extrema includes end of range
+    end = len(list) -1
+    extrema.append(end)
+    minima.append(end)
+    maxima.append(end)
     return extrema, minima, maxima
 
 def saveplot(filename):
@@ -71,9 +77,18 @@ with open(file_name) as csvfile:
 A_to_mA = 1000 # 1000 milliamps per amp
 current_list_mA = [A_to_mA*current for current in current_list]
 
-_, _, voltage_maximas  = get_extrema(voltage_list)
+_, _, voltage_maximas = get_local_extrema(voltage_list)
+
+cycle_intervals = zip(voltage_maximas[::2], voltage_maximas[1::2])
+
+print cycle_intervals
+
+for i, interval in enumerate(cycle_intervals):
+    a, b = interval
+    matplotlib.pyplot.plot(voltage_list[a:b], current_list_mA[a:b])
+    matplotlib.pyplot.show()
 
 matplotlib.pyplot.plot(voltage_list, current_list_mA)
 
 #TODO: save each cycle as a separate image
-saveplot('all-cycles')
+#saveplot('all-cycles')
