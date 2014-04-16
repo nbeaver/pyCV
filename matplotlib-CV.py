@@ -42,8 +42,14 @@ with open("V-I.csv") as csvfile:
 
 detect_reversals(voltage_list)
 
-matplotlib.pyplot.plot(voltage_list, current_list)
-matplotlib.pyplot.xlabel('Cell potential versus Li [V]')
-matplotlib.pyplot.ylabel('Cell current [A]')
-matplotlib.pyplot.title('Mesoporous carbon')
+# Make room for larger text
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+
+A_to_mA = 1000 # 1000 milliamps per amp
+
+matplotlib.pyplot.plot(voltage_list, [A_to_mA*current for current in current_list])
+matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
+matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
+matplotlib.pyplot.title('Mesoporous carbon', fontsize=30)
 matplotlib.pyplot.show()
