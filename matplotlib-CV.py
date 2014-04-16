@@ -13,10 +13,10 @@ def detect_reversals(list):
             # TODO: implement debouncing
             if delta*delta_previous < 0:
                 reversal_indices.append(i)
-                print "Sign reversal in voltage detected at line", i
-                print "V = ", val
-                print "dV =", delta
-                print "dV_previous =", delta_previous
+                #print "Sign reversal in voltage detected at line", i
+                #print "V = ", val
+                #print "dV =", delta
+                #print "dV_previous =", delta_previous
         else:
             pass
     return reversal_indices
@@ -43,4 +43,7 @@ with open("V-I.csv") as csvfile:
 detect_reversals(voltage_list)
 
 matplotlib.pyplot.plot(voltage_list, current_list)
+matplotlib.pyplot.xlabel('Cell potential versus Li [V]')
+matplotlib.pyplot.ylabel('Cell current [A]')
+matplotlib.pyplot.title('Mesoporous carbon')
 matplotlib.pyplot.show()
