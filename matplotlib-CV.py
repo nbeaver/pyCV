@@ -3,6 +3,8 @@ import matplotlib.pyplot
 import csv
 import sys
 
+DEBUG = 0
+
 def get_local_extrema(list):
     # Local extrema includes beginning of range 
     extrema = [0]
@@ -18,18 +20,34 @@ def get_local_extrema(list):
 
             # If delta and delta_previous have different signs, we've detected a beginning or end of a cycle
             # TODO: implement debouncing
+            # TODO: avoid the reduplication between minima and maxima
             if delta*delta_previous < 0:
                 extrema.append(i)
                 if cmp(delta, delta_previous) == -1:
                     maxima.append(i)
-                    print "Maxima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
+                    voltage_range = list[maxima[-1]] - list[minima[-1]]
+                    if DEBUG:
+                        print "Maximum at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
+                    if voltage_range < minimum_voltage_range:
+                        if DEBUG:
+                            print "False maximum detected at index",i,"with voltage range",voltage_range
+                        maxima.pop()
+                        extrema.pop()
                 else:
                     minima.append(i)
-                    print "Minima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
+                    voltage_range = list[maxima[-1]] - list[minima[-1]]
+                    if DEBUG:
+                        print "Minima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
+                    if voltage_range < minimum_voltage_range:
+                        if DEBUG:
+                            print "False minimum detected at index",i,"with voltage range",voltage_range
+                        maxima.pop()
+                        extrema.pop()
         else:
+            # We've only seen two values, so we can't tell if there's been any extrema
             pass
     # Local extrema includes end of range
-    end = len(list) -1
+    end = len(list) - 1
     extrema.append(end)
     minima.append(end)
     maxima.append(end)
@@ -84,6 +102,7 @@ with open(file_name) as csvfile:
     # Have to do this, since aborting a scan leaves a bunch of ASCII NUL characters.
     except csv.Error, error:
         print "Warning: ignored error:",error
+        print "(EZStat CSV files contain ASCII NUL characters if the scan has been aborted.)"
         pass
 
 A_to_mA = 1000 # 1000 milliamps per amp
@@ -93,7 +112,9 @@ _, _, voltage_maximas = get_local_extrema(voltage_list)
 
 cycle_intervals = zip(voltage_maximas[::2], voltage_maximas[1::2])
 
-print cycle_intervals
+if DEBUG:
+    print "Cycle intervals:",cycle_intervals
+    print "Cycle lengths:",[b - a for a, b in cycle_intervals]
 
 for i, interval in enumerate(cycle_intervals):
     a, b = interval
