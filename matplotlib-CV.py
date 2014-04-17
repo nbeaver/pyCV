@@ -60,6 +60,7 @@ def saveplot(filename):
 
     matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
     matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
+    # TODO: make title configurable or omit it entirely
     matplotlib.pyplot.title('Mesoporous carbon', fontsize=24)
     matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
     matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
