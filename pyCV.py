@@ -5,6 +5,12 @@ import sys
 
 DEBUG = 0
 
+#TODO: add command line flag parsing
+#TODO: add --help flag
+#TODO: add --debug flag
+#TODO: add flags for color and which ones get overlaid
+#TODO: move todo list (or at very least #DONE comments) to a separate file so it doesn't clutter up the source code.
+
 def get_local_extrema(list):
     # Local extrema includes beginning of range 
     extrema = [0]
@@ -25,6 +31,7 @@ def get_local_extrema(list):
                 extrema.append(i)
                 if cmp(delta, delta_previous) == -1:
                     maxima.append(i)
+                    #TODO: check bounds first to avoid out-of-index errors
                     voltage_range = list[maxima[-1]] - list[minima[-1]]
                     if DEBUG:
                         print "Maximum at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
@@ -117,7 +124,8 @@ if DEBUG:
     print "Cycle intervals:",cycle_intervals
     print "Cycle lengths:",[b - a for a, b in cycle_intervals]
 
-#TODO: save each cycle as a separate image
+# DONE: save each cycle as a separate image
+# TODO: save images in their own folder
 file_name_no_extension = file_name.split('.')[0]
 for i, interval in enumerate(cycle_intervals):
     a, b = interval
