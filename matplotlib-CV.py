@@ -19,7 +19,7 @@ def get_local_extrema(list):
             delta_previous = list[i - 1] - list[i - 2]
 
             # If delta and delta_previous have different signs, we've detected a beginning or end of a cycle
-            # TODO: implement debouncing
+            # DONE: implement debouncing
             # TODO: avoid the reduplication between minima and maxima
             if delta*delta_previous < 0:
                 extrema.append(i)
@@ -116,12 +116,13 @@ if DEBUG:
     print "Cycle intervals:",cycle_intervals
     print "Cycle lengths:",[b - a for a, b in cycle_intervals]
 
+#TODO: save each cycle as a separate image
+file_name_no_extension = file_name.split('.')[0]
 for i, interval in enumerate(cycle_intervals):
     a, b = interval
     matplotlib.pyplot.plot(voltage_list[a:b], current_list_mA[a:b])
-    matplotlib.pyplot.show()
+    saveplot(file_name_no_extension + str(i))
+    matplotlib.pyplot.clf()
 
 matplotlib.pyplot.plot(voltage_list, current_list_mA)
-
-#TODO: save each cycle as a separate image
-#saveplot('all-cycles')
+saveplot('all-cycles')
