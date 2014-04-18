@@ -5,12 +5,6 @@ import sys
 
 DEBUG = 0
 
-#TODO: add command line flag parsing
-#TODO: add --help flag
-#TODO: add --debug flag
-#TODO: add flags for color and which ones get overlaid
-#TODO: move todo list (or at very least #DONE comments) to a separate file so it doesn't clutter up the source code.
-
 def get_local_extrema(list):
     # Local extrema includes beginning of range 
     extrema = [0]
@@ -72,8 +66,6 @@ def saveplot(filename):
     matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
     matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
 
-# TODO: be a little more thorough about checking the arguments
-# TODO: choose which scans to overplot on same graph
 if len(sys.argv) < 2:
     # There should be at least the name of the script and the name of the datafile.
     print "Usage: python matplotlib-CV.py datafile.csv"
@@ -81,8 +73,6 @@ if len(sys.argv) < 2:
 
 file_name = sys.argv[1]
 
-#DONE: make the opened file configurable from commandline
-#DONE: parse EZStat potentiostat data instead of the simpler CSV file
 voltage_list = []
 current_list = []
 with open(file_name) as csvfile:

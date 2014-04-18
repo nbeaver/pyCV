@@ -1,0 +1,10 @@
+Keep track of planned and completed features here,
+especially things not directly related to the code so that it doesn't become cluttered.
+
+[*] implement debouncing
+[ ] add command line flag parsing
+    [ ] add --help flag
+    [ ] add --debug flag
+    [ ] add flags for color and which plots to overlay
+[*] make the opened file configurable from commandline
+[*] parse EZStat potentiostat data instead of the simpler CSV file
