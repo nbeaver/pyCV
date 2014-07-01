@@ -2,6 +2,7 @@
 import matplotlib.pyplot
 import csv
 import sys
+import os
 
 DEBUG = 0
 
@@ -31,7 +32,7 @@ def get_local_extrema(list):
                         print "Maximum at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
                     if voltage_range < minimum_voltage_range:
                         if DEBUG:
-                            print "False maximum detected at index",i,"with voltage range",voltage_range
+                            print "False maximum detected at index",i,"with voltage range",voltage_range,"<",minimum_voltage_range
                         maxima.pop()
                         extrema.pop()
                 else:
@@ -41,8 +42,8 @@ def get_local_extrema(list):
                         print "Minima at",i,"with value",val,"with delta_previous",delta_previous,"and delta",delta
                     if voltage_range < minimum_voltage_range:
                         if DEBUG:
-                            print "False minimum detected at index",i,"with voltage range",voltage_range
-                        maxima.pop()
+                            print "False minimum detected at index",i,"with voltage range",voltage_range,"<",minimum_voltage_range
+                        minima.pop()
                         extrema.pop()
         else:
             # We've only seen two values, so we can't tell if there's been any extrema
@@ -63,6 +64,7 @@ def saveplot(filename):
     matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
     # TODO: make title configurable or omit it entirely
     matplotlib.pyplot.title('Mesoporous carbon', fontsize=24)
+    # TODO: save the figures into a directory
     matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
     matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
 
@@ -116,6 +118,16 @@ if DEBUG:
 
 # DONE: save each cycle as a separate image
 # TODO: save images in their own folder
+# TODO: change variable name "file_name" to "file_path" since it is more accurate.
+folder_name = file_name + "_pyCV_plots"
+# May cause race condition.
+# Options:
+# -- Add try/except structure.
+# -- Upgrade to python 3.2 and use os.makedirs(path,exist_ok=True)
+# http://stackoverflow.com/questions/273192/check-if-a-directory-exists-and-create-it-if-necessary
+#if not os.path.exists(folder_name):
+#    os.makedir(folder_name)
+
 file_name_no_extension = file_name.split('.')[0]
 for i, interval in enumerate(cycle_intervals):
     a, b = interval

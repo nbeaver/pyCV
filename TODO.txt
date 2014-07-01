@@ -8,3 +8,6 @@ especially things not directly related to the code so that it doesn't become clu
     [ ] add flags for color and which plots to overlay
 [*] make the opened file configurable from commandline
 [*] parse EZStat potentiostat data instead of the simpler CSV file
+[ ] put output images into a folder instead of dumping them all into the current directory
+[ ] separate the parsing from the rest of the code so that it can read from other data files
+[ ] add another plot with each detected cycle plotted together in different colors
