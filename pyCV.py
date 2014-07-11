@@ -3,8 +3,9 @@ import matplotlib.pyplot
 import csv
 import sys
 import os
+import argparse
 
-DEBUG = 0
+DEBUG = 1
 
 def get_local_extrema(list):
     # Local extrema includes beginning of range 
@@ -21,7 +22,7 @@ def get_local_extrema(list):
 
             # If delta and delta_previous have different signs, we've detected a beginning or end of a cycle
             # DONE: implement debouncing
-            # TODO: avoid the reduplication between minima and maxima
+            # TODO: avoid the reduplication between minima and maxima, i.e. make it more DRY
             if delta*delta_previous < 0:
                 extrema.append(i)
                 if cmp(delta, delta_previous) == -1:
@@ -55,35 +56,45 @@ def get_local_extrema(list):
     maxima.append(end)
     return extrema, minima, maxima
 
-def saveplot(filename):
+def saveplot(filename, title, xlabel='Cell potential versus Li [V]', ylabel='Cell current [mA]'):
     # Make room for larger text
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
 
-    matplotlib.pyplot.xlabel('Cell potential versus Li [V]', fontsize=20)
-    matplotlib.pyplot.ylabel('Cell current [mA]', fontsize=20)
+    matplotlib.pyplot.xlabel(xlabel, fontsize=20)
+    matplotlib.pyplot.ylabel(ylabel, fontsize=20)
     # TODO: make title configurable or omit it entirely
-    matplotlib.pyplot.title('Mesoporous carbon', fontsize=24)
+    matplotlib.pyplot.title(title, fontsize=24)
     # TODO: save the figures into a directory
     matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
     matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
 
+#TODO: throw in a def main here for clarity
+#TODO: parse --title argument
 if len(sys.argv) < 2:
     # There should be at least the name of the script and the name of the datafile.
     print "Usage: python matplotlib-CV.py datafile.csv"
     exit(1)
 
-file_name = sys.argv[1]
+parser = argparse.ArgumentParser(description='This is a script for plotting cyclic voltammetry data.')
+parser.add_argument('-t', '--title', help='Plot title',required=True)
+parser.add_argument('-i', '--input', help='Input file',required=True)
+args = parser.parse_args()
+if DEBUG:
+    print "Plot title", args.title
+    print "Plot input", args.input
+
+file_path = args.input
 
 voltage_list = []
 current_list = []
-with open(file_name) as csvfile:
+with open(file_path) as csvfile:
     row_reader = csv.reader(csvfile, delimiter=',')
     try:
         for row in row_reader:
             number_of_rows_to_skip = 4
-            voltage_column = 8 # start at 0
-            current_column = 6 # start at 0
+            voltage_column = 8 # start at 0, so this is column I on a spreadsheet
+            current_column = 6 # start at 0, so this is column G on a spreadsheet
             if row_reader.line_num == number_of_rows_to_skip:
                 assert row[current_column] == 'Cell.Current (A)'
                 assert row[voltage_column] == 'Cell.Potential (V)'
@@ -92,6 +103,9 @@ with open(file_name) as csvfile:
 
             voltage = float(row[voltage_column])
             current = float(row[current_column])
+            if current == 0.0:
+                print "Exiting early due to zero current at row #",row_reader.line_num
+                break
 
             voltage_list.append(voltage)
             current_list.append(current)
@@ -110,16 +124,18 @@ current_list_mA = [A_to_mA*current for current in current_list]
 
 _, _, voltage_maximas = get_local_extrema(voltage_list)
 
-cycle_intervals = zip(voltage_maximas[::2], voltage_maximas[1::2])
+
+cycle_intervals = zip(voltage_maximas, voltage_maximas[1:])
 
 if DEBUG:
+    print "Maximas:",voltage_maximas
     print "Cycle intervals:",cycle_intervals
     print "Cycle lengths:",[b - a for a, b in cycle_intervals]
 
 # DONE: save each cycle as a separate image
 # TODO: save images in their own folder
-# TODO: change variable name "file_name" to "file_path" since it is more accurate.
-folder_name = file_name + "_pyCV_plots"
+# DONE: change variable name "file_name" to "file_path" since it is more accurate.
+folder_name = file_path + "_pyCV_plots"
 # May cause race condition.
 # Options:
 # -- Add try/except structure.
@@ -128,12 +144,13 @@ folder_name = file_name + "_pyCV_plots"
 #if not os.path.exists(folder_name):
 #    os.makedir(folder_name)
 
-file_name_no_extension = file_name.split('.')[0]
+file_path_no_extension = file_path.split('.')[0]
 for i, interval in enumerate(cycle_intervals):
     a, b = interval
+    nth_cycle = str(i + 1)
     matplotlib.pyplot.plot(voltage_list[a:b], current_list_mA[a:b])
-    saveplot(file_name_no_extension + str(i))
+    saveplot(file_path_no_extension + nth_cycle, args.title + " cycle #" + nth_cycle)
     matplotlib.pyplot.clf()
 
 matplotlib.pyplot.plot(voltage_list, current_list_mA)
-saveplot('all-cycles')
+saveplot('all-cycles', args.title + " (all cycles)")
