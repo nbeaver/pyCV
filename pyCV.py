@@ -14,7 +14,7 @@ def get_local_extrema(list):
     minima = [0]
     # To avoid counting tiny jitters as a cycle,
     # we need a minimum voltage range.
-    minimum_voltage_range = 0.1 # volts
+    minimum_voltage_range = 1.0 # volts
     for i, val in enumerate(list):
         if i > 2:
             delta =          list[i - 0] - list[i - 1]
@@ -56,7 +56,7 @@ def get_local_extrema(list):
     maxima.append(end)
     return extrema, minima, maxima
 
-def saveplot(filename, title, xlabel='Cell potential versus Li [V]', ylabel='Cell current [mA]'):
+def save_plot(basename, title, xlabel='Cell potential versus Li [V]', ylabel='Cell current [mA]'):
     # Make room for larger text
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
@@ -66,23 +66,26 @@ def saveplot(filename, title, xlabel='Cell potential versus Li [V]', ylabel='Cel
     # TODO: make title configurable or omit it entirely
     matplotlib.pyplot.title(title, fontsize=24)
     # TODO: save the figures into a directory
-    matplotlib.pyplot.savefig(filename+'.png', bbox_inches='tight')
-    matplotlib.pyplot.savefig(filename+'.jpg', bbox_inches='tight')
+    matplotlib.pyplot.savefig(basename+'.png', bbox_inches='tight')
+    matplotlib.pyplot.savefig(basename+'.jpg', bbox_inches='tight')
 
-#TODO: throw in a def main here for clarity
-#TODO: parse --title argument
-if len(sys.argv) < 2:
-    # There should be at least the name of the script and the name of the datafile.
-    print "Usage: python matplotlib-CV.py datafile.csv"
-    exit(1)
+def save_csv(basename, line_list):
+    # Save csv files for e.g. gnuplot
+    with open(basename + ".txt", 'wb') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=' ', quoting=csv.QUOTE_NONE)
+        for line in line_list:
+            csv_writer.writerow(line)
+
+#TODO: throw in a def main here for clarity and to separate out the future charge-discharge curves.
+#DONE: parse --title argument
 
 parser = argparse.ArgumentParser(description='This is a script for plotting cyclic voltammetry data.')
 parser.add_argument('-t', '--title', help='Plot title',required=True)
 parser.add_argument('-i', '--input', help='Input file',required=True)
 args = parser.parse_args()
 if DEBUG:
-    print "Plot title", args.title
-    print "Plot input", args.input
+    print "Plot title", repr(args.title)
+    print "Plot input", repr(args.input)
 
 file_path = args.input
 
@@ -95,16 +98,22 @@ with open(file_path) as csvfile:
             number_of_rows_to_skip = 4
             voltage_column = 8 # start at 0, so this is column I on a spreadsheet
             current_column = 6 # start at 0, so this is column G on a spreadsheet
+            seconds_column = 3 # start at 0, so this is column D on a spreadsheet
+            step_num_column = 1 # start at 0, so this is column B on a spreadsheet
             if row_reader.line_num == number_of_rows_to_skip:
                 assert row[current_column] == 'Cell.Current (A)'
                 assert row[voltage_column] == 'Cell.Potential (V)'
+                assert row[seconds_column] == 'Time [=] sec'
+                assert row[step_num_column] == 'Step #'
             if row_reader.line_num <= number_of_rows_to_skip: 
                 continue # skip headers
 
             voltage = float(row[voltage_column])
             current = float(row[current_column])
-            if current == 0.0:
-                print "Exiting early due to zero current at row #",row_reader.line_num
+            seconds = float(row[seconds_column])
+            step_num = int(row[step_num_column])
+            if current == 0.0 and step_num != 1: # Usually start at OCV, so no current initially.
+                print "Warning: Exiting early due to zero current at row #",row_reader.line_num
                 break
 
             voltage_list.append(voltage)
@@ -116,7 +125,9 @@ with open(file_path) as csvfile:
     # Have to do this, since aborting a scan leaves a bunch of ASCII NUL characters.
     except csv.Error, error:
         print "Warning: ignored error:",error
-        print "(EZStat CSV files contain ASCII NUL characters if the scan has been aborted.)"
+        print "(EZStat CSV files will crash the python csv parser if the recipe was aborted.)"
+        # End of successful file: ^@^@^@^ORecipe finished
+        # End of aborted file: ^@^@^@^NRecipe aborted
         pass
 
 A_to_mA = 1000 # 1000 milliamps per amp
@@ -132,25 +143,30 @@ if DEBUG:
     print "Cycle intervals:",cycle_intervals
     print "Cycle lengths:",[b - a for a, b in cycle_intervals]
 
+# TODO: write individual csv files for each plot
 # DONE: save each cycle as a separate image
 # TODO: save images in their own folder
 # DONE: change variable name "file_name" to "file_path" since it is more accurate.
-folder_name = file_path + "_pyCV_plots"
-# May cause race condition.
+
+file_path_no_extension = os.path.splitext(file_path)[0]
+basename_no_extension = os.path.splitext(os.path.basename(file_path))[0]
+folder_name = file_path_no_extension + "_pyCV_plots"
+if not os.path.exists(folder_name):
+    os.mkdir(folder_name)
+# TODO: May cause race condition.
 # Options:
 # -- Add try/except structure.
 # -- Upgrade to python 3.2 and use os.makedirs(path,exist_ok=True)
 # http://stackoverflow.com/questions/273192/check-if-a-directory-exists-and-create-it-if-necessary
-#if not os.path.exists(folder_name):
-#    os.makedir(folder_name)
+full_basename = os.path.join(folder_name, basename_no_extension)
 
-file_path_no_extension = file_path.split('.')[0]
 for i, interval in enumerate(cycle_intervals):
-    a, b = interval
     nth_cycle = str(i + 1)
+    a, b = interval
     matplotlib.pyplot.plot(voltage_list[a:b], current_list_mA[a:b])
-    saveplot(file_path_no_extension + nth_cycle, args.title + " cycle #" + nth_cycle)
+    save_plot(full_basename + "_" + nth_cycle, args.title + " cycle #" + nth_cycle)
+    save_csv(full_basename + "_" + nth_cycle, [("V","I")]+zip(voltage_list[a:b], current_list_mA[a:b]))
     matplotlib.pyplot.clf()
 
 matplotlib.pyplot.plot(voltage_list, current_list_mA)
-saveplot('all-cycles', args.title + " (all cycles)")
+save_plot(full_basename + '_all-cycles', args.title + " (all cycles)")
