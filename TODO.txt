@@ -13,4 +13,6 @@ especially things not directly related to the code so that it doesn't become clu
 [ ] put output images into a folder instead of dumping them all into the current directory
 [ ] separate the parsing from the rest of the code so that it can read from other data files
 [ ] add another plot with each detected cycle plotted together in different colors
-[ ] update usage information
+[ ] update README usage information
+[ ] move charge/discharge legend to bottom right where it won't block the data
+[ ] separate the code for plotting from the code for parsing from the code for plotting, so people can use it without matplotlib.
