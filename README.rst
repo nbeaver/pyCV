@@ -19,3 +19,11 @@ Generated the cyclic voltammetry plots with the provided example data this way::
     python pyCV.py --input example-EZStat-data.csv --title "Mesoporous carbon"
 
 This will produce a folder called ``example-EZStat-data_pyCV_plots/`` containing a ``png`` image, a ``jpeg`` image, and a ``csv`` file for each cycle.
+
+-------
+License
+-------
+
+This project is licensed under the terms of the `MIT license`_.
+
+.. _MIT license: LICENSE.txt
